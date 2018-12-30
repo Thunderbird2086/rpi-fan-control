@@ -52,7 +52,7 @@ def getTemperature():
             temp2 = int(t)/100
             tempm = int(temp2) % int(temp1)
             cpu_temp = float("{}.{}".format(int(temp1), tempm))
-    _LOGGER.info("T=%s'C", cpu_temp)
+    _LOGGER.debug("T=%s'C", cpu_temp)
     return cpu_temp
 
 
@@ -64,7 +64,8 @@ def getDutyRatio(temp, high, low, duty_min=0):
     if(temp < low):
         return 0
 
-    return ((temp - low) / (high - low)) * 100 + duty_min
+    dr = ((temp - low) / (high - low)) * (100 - duty_min) + duty_min
+    return int(dr) if dr < 100 else 100
 
 
 class Fan:
@@ -105,20 +106,22 @@ class Fan:
         self.off()
         GPIO.cleanup()
 
-    def on_off_control(self, current_temp):
+    def on_off_control(self, cpu_temp):
         """On/Off control"""
-        if current_temp > self.config[TEMP_THRESHOLD]:
+        if cpu_temp > self.config[TEMP_THRESHOLD]:
             self.on()
+            _LOGGER.info("Turned fan on as T=%s'C", cpu_temp)
         else:
             self.off()
 
-    def pwm_control(self, current_temp):
+    def pwm_control(self, cpu_temp):
         """PWM control"""
-        duty = getDutyRatio(current_temp,
+        duty = getDutyRatio(cpu_temp,
                             self.config_pwm[TEMP_MAX],
                             self.config_pwm[TEMP_MIN],
-                            self.config_pwm.get(DUTY_RATIO_MIN, 20))
-        _LOGGER.debug("duty: %s", duty)
+                            self.config_pwm[DUTY_RATIO_MIN])
+        if duty > 0:
+            _LOGGER.info("duty: %s for T=%s'C", duty, cpu_temp)
         self.pwm.ChangeDutyCycle(duty)
 
     def run(self):
@@ -140,10 +143,13 @@ def getArgParse():
                         required=False, default=None,
                         help='config file to override default')
 
-    return parser.parse_args()
+    args, unknown = parser.parse_known_args()
+    _LOGGER.info("ignore unknwon argumens: %s", unknown)
+    return args
 
 
 def loadConfig(config_file):
+    """load custom configuration"""
     if config_file is None:
         return CONFIG
 
@@ -152,6 +158,7 @@ def loadConfig(config_file):
     if PWM in user_conf:
         config[MODE] = PWM
     config.update(user_conf)
+
     _LOGGER.debug(user_conf)
     _LOGGER.debug(config)
 
