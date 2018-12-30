@@ -1,0 +1,8 @@
+# Default settings for fan-control. This file is sourced by /bin/sh from
+# /etc/init.d/ssh.
+
+# Options to pass to sshd
+#FAN_OPTS= -d
+#FAN_OPTS= -c /home/osmc/fan-control.cfg
+#FAN_OPTS= -d -c /home/osmc/fan-control.cfg
+FAN_OPTS=
