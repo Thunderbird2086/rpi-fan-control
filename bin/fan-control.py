@@ -37,7 +37,7 @@ CONFIG = {
 
 _CPU_TEMP = '/sys/class/thermal/thermal_zone0/temp'
 
-_FORMAT = '%(asctime)-15s %(message)s'
+_FORMAT = '%(message)s'
 logging.basicConfig(format=_FORMAT)
 
 _LOGGER = logging.getLogger(__name__)
@@ -165,6 +165,17 @@ def loadConfig(config_file):
     return config
 
 
+class SignalHandler:
+    """Signal handler"""
+    def __init__(self, handler):
+        self.custom_handler = handler
+
+    def handler(self, signal, frame):
+        self.custom_handler()
+        _LOGGER.info("Stop fan control")
+        sys.exit(0)
+
+
 def main():
     _LOGGER.info("Starting fan control")
     args = getArgParse()
@@ -174,6 +185,10 @@ def main():
 
     try:
         fan = Fan(loadConfig(args.config))
+
+        custom_sig_handler = SignalHandler(fan.clean_up)
+        signal.signal(signal.SIGTERM, custom_sig_handler.handler)
+
         fan.run()
     except KeyboardInterrupt:
         fan.clean_up()

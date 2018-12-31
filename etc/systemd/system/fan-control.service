@@ -1,0 +1,10 @@
+[Unit]
+Description=RPi Fan Controller
+
+[Service]
+EnvironmentFile=-/usr/local/etc/default/fan-control.default
+ExecStart=/usr/bin/python ${FAN_CONTROL_DIR}/fan-control.py ${FAN_OPTS}
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
