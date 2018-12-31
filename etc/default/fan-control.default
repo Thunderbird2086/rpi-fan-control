@@ -4,6 +4,6 @@ FAN_CONTROL_DIR=/usr/local/bin
 
 # Options to pass to fan-control.py
 FAN_OPTS=
-#FAN_OPTS= -d
-#FAN_OPTS= -c /home/osmc/fan-control.cfg
-#FAN_OPTS= -d -c /home/osmc/fan-control.cfg
+#FAN_OPTS="-d"
+#FAN_OPTS="-c/usr/local/etc/fan-control.cfg"
+#FAN_OPTS="-d-c/usr/local/etc//fan-control.cfg"
